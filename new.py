@@ -7,6 +7,11 @@ import requests
 import hashlib
 import platform
 import subprocess
+from pyupdater.client import Client
+from pyupdater.client import AppUpdate
+from pyupdater.client import FileDownloader
+
+client = Client("https://github.com/Alpha-Tool/alpha-tool.git")
 
 def main_menu():
     while True:
@@ -64,11 +69,10 @@ def main_menu():
         else:
             print("Invalid choice.")
 
-def mode_wta():
-    appdata_path = os.getenv('APPDATA')
-    alpha_tool_path = os.path.join(appdata_path, 'AlphaTool')
+appdata_path = os.getenv('APPDATA')
+alpha_tool_path = os.path.join(appdata_path, 'AlphaTool')
 
-    if not os.path.exists(alpha_tool_path):
+if not os.path.exists(alpha_tool_path):
         os.makedirs(alpha_tool_path)
 
         # Create the .txt files inside the AlphaTool folder
@@ -87,7 +91,7 @@ def mode_wta():
         wtsid_path = os.path.join(alpha_tool_path, 'wts_ids.txt')
         with open(wtsid_path, 'w', encoding='utf-8') as f:
             f.write('past your wts id channel here')
-    else:
+else:
         # Check if the text files exist, and create them if they don't
         wts_path = os.path.join(alpha_tool_path, 'wts.txt')
         if not os.path.exists(wts_path):
@@ -109,7 +113,8 @@ def mode_wta():
             with open(wtsid_path, 'w', encoding='utf-8') as f:
                 f.write('past your wts id channel here')
 
-    
+
+def mode_wta():
     while True:
         os.system('cls')
         os.system('cls')
@@ -346,6 +351,26 @@ RED = "\033[31m"
 VIOLET = "\033[35m"
 END = "\033[0m"
 CY = "\033[36m"
+
+# Vérifiez s'il existe des mises à jour disponibles pour l'application
+client.refresh()
+
+# Installez la mise à jour s'il y en a une disponible
+app_update = client.update_check("Alpha Tool", "1.0.0")
+if app_update is not None:
+    # Télécharger la mise à jour
+    print(f"Téléchargement de la mise à jour {app_update.version}...")
+    downloader = FileDownloader(client)
+    downloader.download(app_update.files)
+
+    # Installer la mise à jour
+    print(f"Installation de la mise à jour {app_update.version}...")
+    app = AppUpdate(client)
+    app.install_restart()
+else:
+    # Aucune mise à jour n'est disponible
+    os.system('cls')
+
 
 def generate_hwid():
     return hashlib.sha256(platform.node().encode()).hexdigest().strip()
